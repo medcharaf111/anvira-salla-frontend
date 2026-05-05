@@ -15,6 +15,8 @@ export default function InboxPage() {
   const [aiSource, setAiSource] = useState<"gemini" | "fallback" | null>(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [usedAi, setUsedAi] = useState(false);
+  const [summary, setSummary] = useState<{ text: string; source: "gemini" | "fallback" } | null>(null);
+  const [loadingSummary, setLoadingSummary] = useState(false);
 
   const refreshList = useCallback(async () => {
     const r = await api.listConversations();
@@ -35,6 +37,7 @@ export default function InboxPage() {
     setSuggestions([]);
     setAiSource(null);
     setUsedAi(false);
+    setSummary(null);
   }, []);
 
   useEffect(() => {
@@ -80,6 +83,17 @@ export default function InboxPage() {
     await refreshList();
   }
 
+  async function handleSummarize() {
+    if (!activeId) return;
+    setLoadingSummary(true);
+    try {
+      const r = await api.summarizeConversation(activeId);
+      setSummary(r);
+    } finally {
+      setLoadingSummary(false);
+    }
+  }
+
   async function handleSimulateInbound() {
     if (!activeId || !activeConv) return;
     const samples = [
@@ -110,7 +124,15 @@ export default function InboxPage() {
             users={users}
             onAssign={handleAssign}
             onSimulateInbound={handleSimulateInbound}
+            onSummarize={handleSummarize}
+            loadingSummary={loadingSummary}
           />
+          {summary && (
+            <SummaryPanel
+              summary={summary}
+              onClose={() => setSummary(null)}
+            />
+          )}
           <ThreadMessages messages={messages} users={users} />
           <Composer
             draft={draft}
@@ -202,11 +224,15 @@ function ThreadHeader({
   users,
   onAssign,
   onSimulateInbound,
+  onSummarize,
+  loadingSummary,
 }: {
   conv: Conversation;
   users: User[];
   onAssign: (id: string | null) => Promise<void>;
   onSimulateInbound: () => Promise<void>;
+  onSummarize: () => Promise<void>;
+  loadingSummary: boolean;
 }) {
   return (
     <div className="px-7 py-4 border-b border-line bg-surface flex items-center justify-between gap-4">
@@ -215,6 +241,13 @@ function ThreadHeader({
         <div className="text-xs text-ink-subtle">{conv.customerPhone}</div>
       </div>
       <div className="flex items-center gap-2.5">
+        <button
+          onClick={onSummarize}
+          disabled={loadingSummary}
+          className="text-xs px-3 py-1.5 rounded-lg bg-accent-soft text-accent-ink hover:bg-accent-soft-hover transition disabled:opacity-50"
+        >
+          {loadingSummary ? "جاري التلخيص..." : "✨ تلخيص"}
+        </button>
         <select
           value={conv.assignedUserId ?? ""}
           onChange={(e) => onAssign(e.target.value || null)}
@@ -232,6 +265,39 @@ function ThreadHeader({
           className="text-xs px-3 py-1.5 rounded-lg bg-warn-soft text-warn hover:opacity-90 transition"
         >
           محاكاة رسالة واردة
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function SummaryPanel({
+  summary,
+  onClose,
+}: {
+  summary: { text: string; source: "gemini" | "fallback" };
+  onClose: () => void;
+}) {
+  return (
+    <div className="px-7 py-4 border-b border-line bg-accent-soft/40">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1">
+          <div className="text-xs font-medium text-accent-ink mb-2 flex items-center gap-1.5">
+            <span>✨</span>
+            ملخص المحادثة بالذكاء الاصطناعي
+            {summary.source === "fallback" && (
+              <span className="text-warn">(قالب احتياطي)</span>
+            )}
+          </div>
+          <div className="text-sm text-ink whitespace-pre-wrap leading-7">
+            {summary.text}
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="text-ink-subtle hover:text-ink text-sm leading-none mt-0.5"
+        >
+          ×
         </button>
       </div>
     </div>

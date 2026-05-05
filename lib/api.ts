@@ -79,6 +79,101 @@ export interface DevMe {
   users: User[];
 }
 
+export interface Task {
+  id: string;
+  merchantId: string;
+  title: string;
+  description: string | null;
+  status: "todo" | "in_progress" | "done";
+  assignedUserId: string | null;
+  createdByUserId: string | null;
+  conversationId: string | null;
+  sallaOrderId: string | null;
+  dueAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+}
+
+export interface CustomerSummary {
+  phone: string;
+  name: string | null;
+  conversationCount: number;
+  lastSeen: string;
+}
+
+export interface CustomerNote {
+  id: string;
+  merchantId: string;
+  customerPhone: string;
+  body: string;
+  authorUserId: string | null;
+  createdAt: string;
+}
+
+export interface CustomerProfile {
+  phone: string;
+  name: string | null;
+  conversations: Conversation[];
+  orders: SallaOrder[];
+  notes: CustomerNote[];
+}
+
+export interface ActivityEntry {
+  id: string;
+  merchantId: string;
+  actorUserId: string | null;
+  action: string;
+  targetKind: string | null;
+  targetId: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface TeamChannel {
+  id: string;
+  merchantId: string;
+  name: string;
+  description: string | null;
+  kind: "channel" | "dm";
+  createdAt: string;
+}
+
+export interface TeamMessage {
+  id: string;
+  channelId: string;
+  authorUserId: string;
+  body: string;
+  mentions: string[] | null;
+  createdAt: string;
+}
+
+export interface WorkflowTemplate {
+  id: string;
+  merchantId: string;
+  slug: string;
+  name: string;
+  description: string;
+  trigger: string;
+  action: string;
+  enabled: boolean;
+  createdAt: string;
+}
+
+export interface SentimentReport {
+  counts: { positive: number; neutral: number; negative: number };
+  perConversation: Record<string, "positive" | "neutral" | "negative">;
+  source: "gemini" | "fallback";
+  sample: number;
+}
+
+export interface AgentPerformance {
+  userId: string;
+  name: string;
+  role: string;
+  messagesSent: number;
+  aiAssisted: number;
+}
+
 function authHeaders(): Record<string, string> {
   if (typeof window === "undefined") return {};
   const merchantId = localStorage.getItem("anvira:merchantId");
@@ -161,6 +256,91 @@ export const api = {
       method: "PATCH",
       body: JSON.stringify(payload),
     }),
+
+  // ---------- Tasks ----------
+  listTasks: () => request<{ tasks: Task[] }>("/tasks"),
+  createTask: (payload: {
+    title: string;
+    description?: string;
+    status?: "todo" | "in_progress" | "done";
+    assignedUserId?: string | null;
+    conversationId?: string | null;
+  }) =>
+    request<{ ok: boolean; task: Task }>("/tasks", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateTask: (id: string, payload: Partial<Task>) =>
+    request<{ ok: boolean; task: Task }>(`/tasks/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteTask: (id: string) =>
+    request<{ ok: boolean }>(`/tasks/${id}`, { method: "DELETE" }),
+
+  // ---------- Customers ----------
+  listCustomers: () =>
+    request<{ customers: CustomerSummary[] }>("/customers"),
+  getCustomer: (phone: string) =>
+    request<CustomerProfile>(`/customers/${encodeURIComponent(phone)}`),
+  addCustomerNote: (phone: string, body: string) =>
+    request<{ ok: boolean; note: CustomerNote }>(
+      `/customers/${encodeURIComponent(phone)}/notes`,
+      { method: "POST", body: JSON.stringify({ body }) }
+    ),
+  deleteCustomerNote: (phone: string, id: string) =>
+    request<{ ok: boolean }>(
+      `/customers/${encodeURIComponent(phone)}/notes/${id}`,
+      { method: "DELETE" }
+    ),
+
+  // ---------- Activity ----------
+  listActivity: () =>
+    request<{ entries: ActivityEntry[] }>("/activity"),
+
+  // ---------- Team chat ----------
+  listChannels: () =>
+    request<{ channels: TeamChannel[] }>("/team/channels"),
+  createChannel: (name: string, description?: string) =>
+    request<{ ok: boolean; channel: TeamChannel }>("/team/channels", {
+      method: "POST",
+      body: JSON.stringify({ name, description }),
+    }),
+  getChannel: (id: string) =>
+    request<{ channel: TeamChannel; messages: TeamMessage[] }>(
+      `/team/channels/${id}/messages`
+    ),
+  postChannelMessage: (id: string, body: string) =>
+    request<{ ok: boolean; message: TeamMessage }>(
+      `/team/channels/${id}/messages`,
+      { method: "POST", body: JSON.stringify({ body }) }
+    ),
+
+  // ---------- Workflows ----------
+  listWorkflows: () =>
+    request<{ workflows: WorkflowTemplate[] }>("/workflows"),
+  toggleWorkflow: (id: string, enabled: boolean) =>
+    request<{ ok: boolean; workflow: WorkflowTemplate }>(`/workflows/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ enabled }),
+    }),
+
+  // ---------- AI Insights ----------
+  insightsSentiment: () =>
+    request<SentimentReport>("/insights/sentiment"),
+  insightsTopQuestions: () =>
+    request<{ questions: string[]; source: "gemini" | "fallback" }>(
+      "/insights/top-questions"
+    ),
+  insightsAgents: () =>
+    request<{ agents: AgentPerformance[] }>("/insights/agent-performance"),
+  insightsPeakHours: () =>
+    request<{ buckets: number[] }>("/insights/peak-hours"),
+  summarizeConversation: (id: string) =>
+    request<{ text: string; source: "gemini" | "fallback" }>(
+      `/insights/conversations/${id}/summary`,
+      { method: "POST" }
+    ),
 };
 
 export function setAuthIds(merchantId: string, userId: string) {

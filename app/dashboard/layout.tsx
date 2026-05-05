@@ -6,11 +6,18 @@ import { ReactNode } from "react";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 
 const navItems = [
-  { href: "/dashboard", label: "نظرة عامة", icon: HomeIcon },
-  { href: "/dashboard/inbox", label: "صندوق الواتساب", icon: ChatIcon },
-  { href: "/dashboard/carts", label: "السلات المهجورة", icon: CartIcon },
-  { href: "/dashboard/orders", label: "الطلبات", icon: OrdersIcon },
-  { href: "/dashboard/settings", label: "الإعدادات والفريق", icon: GearIcon },
+  { href: "/dashboard", label: "نظرة عامة", icon: HomeIcon, group: "main" },
+  { href: "/dashboard/inbox", label: "صندوق الواتساب", icon: ChatIcon, group: "main" },
+  { href: "/dashboard/customers", label: "العملاء (CRM)", icon: UsersIcon, group: "main" },
+  { href: "/dashboard/carts", label: "السلات المهجورة", icon: CartIcon, group: "main" },
+  { href: "/dashboard/orders", label: "الطلبات", icon: OrdersIcon, group: "main" },
+  { href: "/dashboard/tasks", label: "المهام", icon: TasksIcon, group: "ops" },
+  { href: "/dashboard/team", label: "تشات الفريق", icon: TeamIcon, group: "ops" },
+  { href: "/dashboard/insights", label: "تحليلات AI", icon: SparkleIcon, group: "ops" },
+  { href: "/dashboard/workflows", label: "الأتمتات", icon: WorkflowIcon, group: "ops" },
+  { href: "/dashboard/apps", label: "متجر التطبيقات", icon: AppsIcon, group: "ops" },
+  { href: "/dashboard/activity", label: "سجل النشاط", icon: ActivityIcon, group: "system" },
+  { href: "/dashboard/settings", label: "الإعدادات والفريق", icon: GearIcon, group: "system" },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -61,26 +68,33 @@ function Shell({ children }: { children: ReactNode }) {
           </Link>
         </div>
 
-        <nav className="flex-1 py-3 px-2">
-          {navItems.map((item) => {
-            const active =
-              item.href === "/dashboard"
-                ? pathname === item.href
-                : pathname?.startsWith(item.href);
-            const Icon = item.icon;
+        <nav className="flex-1 py-2 px-2 overflow-y-auto">
+          {(["main", "ops", "system"] as const).map((group, gi) => {
+            const items = navItems.filter((n) => n.group === group);
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition my-0.5 ${
-                  active
-                    ? "bg-accent-soft text-accent-ink font-medium"
-                    : "text-ink-muted hover:bg-surface-2 hover:text-ink"
-                }`}
-              >
-                <Icon active={!!active} />
-                <span>{item.label}</span>
-              </Link>
+              <div key={group} className={gi === 0 ? "" : "mt-3 pt-2 border-t border-line/60"}>
+                {items.map((item) => {
+                  const active =
+                    item.href === "/dashboard"
+                      ? pathname === item.href
+                      : pathname?.startsWith(item.href);
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition my-0.5 ${
+                        active
+                          ? "bg-accent-soft text-accent-ink font-medium"
+                          : "text-ink-muted hover:bg-surface-2 hover:text-ink"
+                      }`}
+                    >
+                      <Icon active={!!active} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
             );
           })}
         </nav>
@@ -189,6 +203,74 @@ function OrdersIcon({ active }: IconProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </svg>
+  );
+}
+
+function UsersIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="9" cy="7" r="4" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function TasksIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <rect x="3" y="4" width="18" height="16" rx="2" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M8 9l2 2 4-4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M8 16h8" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function TeamIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="9" cy="10" r="1" fill="currentColor" />
+      <circle cx="13" cy="10" r="1" fill="currentColor" />
+      <circle cx="17" cy="10" r="1" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SparkleIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <path d="M12 3l1.5 4.5L18 9l-4.5 1.5L12 15l-1.5-4.5L6 9l4.5-1.5L12 3zM19 14l.8 2.2L22 17l-2.2.8L19 20l-.8-2.2L16 17l2.2-.8L19 14z" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function WorkflowIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <rect x="3" y="3" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="15" y="9" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="3" y="15" width="6" height="6" rx="1.5" stroke="currentColor" strokeWidth="1.6" />
+      <path d="M9 6h3a3 3 0 0 1 3 3v3M9 18h3a3 3 0 0 0 3-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function AppsIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <rect x="3" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="14" y="3" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="3" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.6" />
+      <rect x="14" y="14" width="7" height="7" rx="1" stroke="currentColor" strokeWidth="1.6" />
+    </svg>
+  );
+}
+
+function ActivityIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
