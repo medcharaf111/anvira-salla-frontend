@@ -40,10 +40,10 @@ export default function Home() {
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-8">
           <a
-            href="mailto:hello@anviraplus.com"
-            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 font-medium hover:opacity-90 transition"
+            href="/dashboard"
+            className="inline-flex items-center justify-center px-6 py-3 rounded-full bg-emerald-500 text-white font-medium hover:bg-emerald-600 transition"
           >
-            انضم لقائمة الانتظار
+            افتح العرض التجريبي ←
           </a>
           <a
             href="https://salla.com"
