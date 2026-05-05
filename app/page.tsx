@@ -193,7 +193,7 @@ function Logo({ small = false }: { small?: boolean }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      <rect width="24" height="24" rx="6" fill="#c96442" />
+      <rect width="24" height="24" rx="6" fill="#6e1ac2" />
       <path
         d="M7 17 L12 7 L17 17 M9 13 H15"
         stroke="white"

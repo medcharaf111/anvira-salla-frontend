@@ -1,42 +1,43 @@
 @import "tailwindcss";
 
 /**
- * Anvira design system — light, warm, Claude-style.
- * Inspired by Anthropic's product surface: warm cream canvas,
- * coral accent, generous whitespace, soft borders.
+ * Anvira design system — Salla-aligned light theme.
+ * Salla's brand: vibrant purple accent on clean cool whites.
+ * Crisp, modern e-commerce feel — high contrast, small radii on inputs,
+ * generous radii on cards.
  */
 @theme {
-  /* canvas + surfaces */
-  --color-canvas: #faf9f5;
+  /* canvas + surfaces — cool, near-white */
+  --color-canvas: #fafafc;
   --color-surface: #ffffff;
-  --color-surface-2: #f5f3ec;
-  --color-surface-3: #ece9df;
+  --color-surface-2: #f5f4f9;
+  --color-surface-3: #ebeaf3;
 
   /* borders */
-  --color-line: #e8e4d6;
-  --color-line-strong: #d6d1bf;
+  --color-line: #e7e6ee;
+  --color-line-strong: #d3d1de;
 
-  /* text */
-  --color-ink: #2d2c28;
-  --color-ink-muted: #6b6960;
-  --color-ink-subtle: #93908a;
+  /* text — cool charcoals */
+  --color-ink: #18181b;
+  --color-ink-muted: #5b5b66;
+  --color-ink-subtle: #8e8d97;
 
-  /* accent — Claude coral */
-  --color-accent: #c96442;
-  --color-accent-hover: #b85838;
-  --color-accent-soft: #f5e6dd;
-  --color-accent-soft-hover: #efd8c8;
-  --color-accent-ink: #843b22;
+  /* accent — Salla purple */
+  --color-accent: #6e1ac2;
+  --color-accent-hover: #5611a3;
+  --color-accent-soft: #f1e6fb;
+  --color-accent-soft-hover: #e6d0f7;
+  --color-accent-ink: #3f0d75;
 
-  /* status */
-  --color-success: #5b8a72;
-  --color-success-soft: #e1ede6;
-  --color-warn: #c98a3a;
-  --color-warn-soft: #f5e9d2;
-  --color-info: #4a7a93;
-  --color-info-soft: #dde9ef;
-  --color-danger: #b8473e;
-  --color-danger-soft: #f0d8d4;
+  /* status — clean modern (not warm earth) */
+  --color-success: #16a34a;
+  --color-success-soft: #dcfce7;
+  --color-warn: #d97706;
+  --color-warn-soft: #fef3c7;
+  --color-info: #0284c7;
+  --color-info-soft: #dbeafe;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fee2e2;
 
   /* radii */
   --radius-sm: 6px;
@@ -69,7 +70,7 @@ body {
   color: var(--color-accent-ink);
 }
 
-/* Subtle scrollbars that match the warm theme */
+/* Subtle scrollbars */
 *::-webkit-scrollbar {
   width: 10px;
   height: 10px;
