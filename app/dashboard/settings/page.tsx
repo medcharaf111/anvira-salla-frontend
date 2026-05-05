@@ -57,38 +57,54 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="px-8 py-10 max-w-3xl">
-      <h1 className="text-2xl font-bold mb-1">الإعدادات والفريق</h1>
-      <p className="text-zinc-500 text-sm mb-8">
-        إدارة موظفي الفريق والاسم الذي يظهر للعميل عند الرد.
-      </p>
+    <div className="px-10 py-12 max-w-3xl">
+      <header className="mb-8">
+        <p className="text-sm text-ink-subtle mb-1">الإعدادات</p>
+        <h1 className="text-3xl font-semibold tracking-tight">الفريق والصلاحيات</h1>
+        <p className="text-ink-muted mt-2 text-[15px]">
+          إدارة موظفي الفريق والاسم الذي يظهر للعميل عند الرد عبر الواتساب.
+        </p>
+      </header>
 
       {!isOwner && (
-        <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-sm text-amber-800 dark:text-amber-200">
-          ⚠️ بعض الإعدادات تظهر لك لكن متاحة فقط للمالك.
+        <div className="mb-6 p-4 rounded-xl bg-warn-soft text-warn text-sm border border-warn/20">
+          ⚠️ بعض الإعدادات تظهر لك لكنها متاحة للمالك فقط.
         </div>
       )}
 
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 mb-8">
-        <div className="px-5 py-4 border-b border-zinc-200 dark:border-zinc-800 font-semibold">
-          الفريق ({users.length})
+      <section className="bg-surface rounded-2xl border border-line mb-7 overflow-hidden">
+        <div className="px-6 py-4 border-b border-line">
+          <h2 className="font-semibold tracking-tight">الفريق</h2>
+          <p className="text-xs text-ink-subtle mt-0.5">
+            {users.length} عضو · {users.filter((u) => u.role === "owner").length} مالك ·{" "}
+            {users.filter((u) => u.role === "agent").length} موظفون
+          </p>
         </div>
         <ul>
           {users.map((u) => (
             <li
               key={u.id}
-              className="px-5 py-4 border-b border-zinc-100 dark:border-zinc-800 last:border-b-0"
+              className="px-6 py-5 border-b border-line/60 last:border-b-0"
             >
-              <div className="flex items-start justify-between gap-4 mb-2">
+              <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
                   <div className="font-medium">{u.name}</div>
-                  <div className="text-xs text-zinc-500">
-                    {u.email} · {u.role === "owner" ? "مالك" : "موظف"}
+                  <div className="text-xs text-ink-subtle mt-0.5">
+                    {u.email}
                   </div>
                 </div>
+                <span
+                  className={`text-[10px] px-2 py-0.5 rounded-full ${
+                    u.role === "owner"
+                      ? "bg-accent-soft text-accent-ink"
+                      : "bg-surface-3 text-ink-muted"
+                  }`}
+                >
+                  {u.role === "owner" ? "مالك" : "موظف"}
+                </span>
               </div>
-              <div className="text-xs text-zinc-500 mb-1">
-                الاسم الظاهر للعميل على الواتساب:
+              <div className="text-[11px] text-ink-subtle mb-1.5">
+                الاسم الظاهر للعميل على الواتساب
               </div>
               <div className="flex items-center gap-2">
                 <input
@@ -98,12 +114,12 @@ export default function SettingsPage() {
                     setEditing((prev) => ({ ...prev, [u.id]: e.target.value }))
                   }
                   disabled={!isOwner}
-                  className="flex-1 px-3 py-1.5 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm disabled:opacity-60"
+                  className="flex-1 px-3 py-2 rounded-lg bg-canvas border border-line text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent disabled:opacity-60"
                 />
                 {isOwner && editing[u.id] !== undefined && (
                   <button
                     onClick={() => saveDisplayName(u)}
-                    className="px-3 py-1.5 rounded-lg bg-emerald-500 text-white text-sm hover:bg-emerald-600"
+                    className="px-3 py-2 rounded-lg bg-accent text-white text-sm hover:bg-accent-hover transition"
                   >
                     حفظ
                   </button>
@@ -112,11 +128,14 @@ export default function SettingsPage() {
             </li>
           ))}
         </ul>
-      </div>
+      </section>
 
       {isOwner && (
-        <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-          <h2 className="font-semibold mb-3">إضافة موظف جديد</h2>
+        <section className="bg-surface rounded-2xl border border-line p-6">
+          <h2 className="font-semibold mb-1 tracking-tight">إضافة موظف جديد</h2>
+          <p className="text-xs text-ink-subtle mb-4">
+            الموظف الجديد يبدأ بدور "موظف" — يمكن للمالك ترقيته لاحقاً.
+          </p>
           <div className="space-y-3">
             <Input
               label="الاسم الكامل"
@@ -139,12 +158,12 @@ export default function SettingsPage() {
             <button
               onClick={createUser}
               disabled={creating || !newName || !newEmail}
-              className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm hover:bg-emerald-600 disabled:opacity-50"
+              className="px-4 py-2.5 rounded-xl bg-accent text-white text-sm hover:bg-accent-hover disabled:opacity-50 transition shadow-sm"
             >
-              {creating ? "جاري الإضافة…" : "إضافة موظف"}
+              {creating ? "...جاري الإضافة" : "إضافة موظف"}
             </button>
           </div>
-        </div>
+        </section>
       )}
     </div>
   );
@@ -163,12 +182,12 @@ function Input({
 }) {
   return (
     <label className="block">
-      <span className="text-xs text-zinc-500">{label}</span>
+      <span className="text-[11px] text-ink-subtle">{label}</span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full mt-1 px-3 py-2 rounded-lg bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 text-sm"
+        className="w-full mt-1 px-3 py-2 rounded-lg bg-canvas border border-line text-sm focus:outline-none focus:ring-2 focus:ring-accent/30 focus:border-accent"
       />
     </label>
   );

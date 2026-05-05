@@ -1,26 +1,87 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/**
+ * Anvira design system — light, warm, Claude-style.
+ * Inspired by Anthropic's product surface: warm cream canvas,
+ * coral accent, generous whitespace, soft borders.
+ */
+@theme {
+  /* canvas + surfaces */
+  --color-canvas: #faf9f5;
+  --color-surface: #ffffff;
+  --color-surface-2: #f5f3ec;
+  --color-surface-3: #ece9df;
+
+  /* borders */
+  --color-line: #e8e4d6;
+  --color-line-strong: #d6d1bf;
+
+  /* text */
+  --color-ink: #2d2c28;
+  --color-ink-muted: #6b6960;
+  --color-ink-subtle: #93908a;
+
+  /* accent — Claude coral */
+  --color-accent: #c96442;
+  --color-accent-hover: #b85838;
+  --color-accent-soft: #f5e6dd;
+  --color-accent-soft-hover: #efd8c8;
+  --color-accent-ink: #843b22;
+
+  /* status */
+  --color-success: #5b8a72;
+  --color-success-soft: #e1ede6;
+  --color-warn: #c98a3a;
+  --color-warn-soft: #f5e9d2;
+  --color-info: #4a7a93;
+  --color-info-soft: #dde9ef;
+  --color-danger: #b8473e;
+  --color-danger-soft: #f0d8d4;
+
+  /* radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* fonts */
+  --font-cairo: var(--font-cairo);
+  --font-geist-sans: var(--font-geist-sans);
+  --font-geist-mono: var(--font-geist-mono);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html,
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-cairo), var(--font-geist-sans), system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.005em;
+}
+
+::selection {
+  background: var(--color-accent-soft);
+  color: var(--color-accent-ink);
+}
+
+/* Subtle scrollbars that match the warm theme */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-surface-3);
+  border-radius: 999px;
+  border: 2px solid var(--color-canvas);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-line-strong);
 }

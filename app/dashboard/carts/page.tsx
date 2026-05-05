@@ -8,7 +8,11 @@ export default function CartsPage() {
   const { merchantId } = useAuth();
   const [carts, setCarts] = useState<AbandonedCart[]>([]);
   const [recoveringId, setRecoveringId] = useState<string | null>(null);
-  const [lastDraft, setLastDraft] = useState<{ id: string; text: string } | null>(null);
+  const [lastDraft, setLastDraft] = useState<{
+    id: string;
+    text: string;
+    aiSource: "gemini" | "fallback";
+  } | null>(null);
 
   const load = useCallback(async () => {
     const r = await api.listCarts();
@@ -24,7 +28,7 @@ export default function CartsPage() {
     setRecoveringId(id);
     try {
       const r = await api.recoverCart(id);
-      setLastDraft({ id, text: r.draft });
+      setLastDraft({ id, text: r.draft, aiSource: r.aiSource });
       await load();
     } finally {
       setRecoveringId(null);
@@ -32,17 +36,20 @@ export default function CartsPage() {
   }
 
   return (
-    <div className="px-8 py-10 max-w-5xl">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-1">السلات المهجورة</h1>
-        <p className="text-zinc-500 text-sm">
-          عملاء أضافوا منتجات للسلة ولم يكملوا الدفع. اضغط "استرجاع" ليصيغ الذكاء الاصطناعي رسالة واتساب مخصصة ويرسلها.
+    <div className="px-10 py-12 max-w-5xl">
+      <header className="mb-8">
+        <p className="text-sm text-ink-subtle mb-1">الاستعادة الذكية</p>
+        <h1 className="text-3xl font-semibold tracking-tight">السلات المهجورة</h1>
+        <p className="text-ink-muted mt-2 text-[15px] max-w-2xl leading-relaxed">
+          عملاء أضافوا منتجات للسلة ولم يكملوا الدفع. اضغط "استرجاع" ليصيغ Anvira AI رسالة واتساب مخصصة باسم العميل ومنتجاته، ويرسلها مباشرة.
         </p>
-      </div>
+      </header>
 
       <div className="space-y-3">
         {carts.length === 0 && (
-          <div className="text-center text-zinc-400 py-12">لا توجد سلات</div>
+          <div className="text-center text-ink-subtle py-16 bg-surface border border-line rounded-2xl">
+            لا توجد سلات
+          </div>
         )}
         {carts.map((cart) => {
           const products = cart.rawPayload?.products ?? [];
@@ -54,23 +61,27 @@ export default function CartsPage() {
           return (
             <div
               key={cart.id}
-              className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5"
+              className="bg-surface rounded-2xl border border-line p-6"
             >
               <div className="flex items-start justify-between gap-4 mb-3">
                 <div>
-                  <div className="font-semibold">{cart.customerPhone}</div>
-                  <div className="text-xs text-zinc-500 mt-0.5">
+                  <div className="font-semibold tracking-tight">
+                    {cart.customerPhone}
+                  </div>
+                  <div className="text-xs text-ink-subtle mt-0.5">
                     منذ {formatMinutes(minutesAgo)} · سلة #{cart.sallaCartId}
                   </div>
                 </div>
                 <div className="text-left">
-                  <div className="text-xl font-bold">{totalSar.toLocaleString("ar-SA")} ر.س</div>
+                  <div className="text-2xl font-semibold tracking-tight">
+                    {totalSar.toLocaleString("ar-SA")} <span className="text-sm text-ink-subtle font-normal">ر.س</span>
+                  </div>
                   {sent ? (
-                    <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300">
+                    <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-success-soft text-success">
                       ✓ تم الإرسال
                     </span>
                   ) : (
-                    <span className="inline-block mt-1 text-xs px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300">
+                    <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-warn-soft text-warn">
                       بانتظار الاسترجاع
                     </span>
                   )}
@@ -78,27 +89,33 @@ export default function CartsPage() {
               </div>
 
               {products.length > 0 && (
-                <div className="text-sm text-zinc-600 dark:text-zinc-400 mb-4">
-                  المنتجات: {products.join(" · ")}
+                <div className="text-sm text-ink-muted mb-4 leading-7">
+                  <span className="text-ink-subtle">المنتجات في السلة: </span>
+                  {products.join(" · ")}
                 </div>
               )}
 
               {lastDraft?.id === cart.id && (
-                <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-xl p-4 mb-3 text-sm leading-7">
-                  <div className="text-xs text-purple-700 dark:text-purple-300 font-semibold mb-2">
-                    ✨ الرسالة التي صاغها Gemini وأُرسلت:
+                <div className="bg-accent-soft/60 border border-accent/15 rounded-xl p-4 mb-3 text-sm leading-7">
+                  <div className="text-[11px] text-accent-ink font-medium mb-2 flex items-center gap-1.5">
+                    <span>✨</span>
+                    {lastDraft.aiSource === "gemini"
+                      ? "الرسالة التي صاغها Anvira AI وأُرسلت:"
+                      : "قالب احتياطي (AI غير متاح حالياً) — أُرسل:"}
                   </div>
-                  <div className="whitespace-pre-wrap">{lastDraft.text}</div>
+                  <div className="whitespace-pre-wrap text-ink">
+                    {lastDraft.text}
+                  </div>
                 </div>
               )}
 
               <button
                 onClick={() => handleRecover(cart.id)}
                 disabled={recoveringId === cart.id}
-                className="px-4 py-2 rounded-xl bg-emerald-500 text-white text-sm hover:bg-emerald-600 transition disabled:opacity-50"
+                className="px-4 py-2 rounded-xl bg-accent text-white text-sm hover:bg-accent-hover transition disabled:opacity-50 shadow-sm"
               >
                 {recoveringId === cart.id
-                  ? "جاري صياغة الرسالة وإرسالها…"
+                  ? "جاري صياغة الرسالة..."
                   : sent
                   ? "إعادة إرسال"
                   : "صياغة وإرسال رسالة استرجاع"}

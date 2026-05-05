@@ -8,7 +8,9 @@ interface Stats {
   conversations: number;
   openConversations: number;
   pendingCarts: number;
+  recoveredCarts: number;
   totalOrders: number;
+  todayOrders: number;
 }
 
 export default function DashboardOverview() {
@@ -23,56 +25,85 @@ export default function DashboardOverview() {
       api.listOrders(),
     ])
       .then(([cv, ct, or]) => {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         setStats({
           conversations: cv.conversations.length,
           openConversations: cv.conversations.filter((c) => c.status === "open").length,
           pendingCarts: ct.carts.filter((c) => !c.recoveryMessageSentAt).length,
+          recoveredCarts: ct.carts.filter((c) => c.recoveryMessageSentAt).length,
           totalOrders: or.orders.length,
+          todayOrders: or.orders.filter(
+            (o) => new Date(o.createdAt) >= today
+          ).length,
         });
       })
       .catch((err) => console.error(err));
   }, [merchantId]);
 
   return (
-    <div className="px-8 py-10 max-w-5xl">
-      <h1 className="text-2xl font-bold mb-1">
-        أهلاً، {currentUser?.name?.split(" ")[0]} 👋
-      </h1>
-      <p className="text-zinc-500 mb-8">نظرة سريعة على نشاط المتجر اليوم.</p>
+    <div className="px-10 py-12 max-w-6xl">
+      <header className="mb-10">
+        <p className="text-sm text-ink-subtle mb-1">نظرة عامة</p>
+        <h1 className="text-3xl font-semibold tracking-tight">
+          أهلاً، {currentUser?.name?.split(" ")[0] ?? ""} 👋
+        </h1>
+        <p className="text-ink-muted mt-2 text-[15px]">
+          ملخص نشاط متجرك خلال اليوم.
+        </p>
+      </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-10">
         <StatCard
-          label="المحادثات النشطة"
-          value={stats?.openConversations ?? "…"}
-          total={stats?.conversations}
-          color="emerald"
+          label="محادثات نشطة"
+          value={stats?.openConversations}
+          sub={
+            stats
+              ? `من إجمالي ${stats.conversations} محادثة`
+              : undefined
+          }
         />
         <StatCard
-          label="السلات المهجورة"
-          value={stats?.pendingCarts ?? "…"}
-          color="amber"
+          label="سلات بانتظار الاسترجاع"
+          value={stats?.pendingCarts}
+          sub={
+            stats !== null && stats !== undefined
+              ? `${stats?.recoveredCarts ?? 0} استرجعت`
+              : undefined
+          }
+          accent
         />
         <StatCard
-          label="الطلبات الكلية"
-          value={stats?.totalOrders ?? "…"}
-          color="blue"
+          label="طلبات اليوم"
+          value={stats?.todayOrders}
+          sub={
+            stats ? `${stats.totalOrders} إجمالي` : undefined
+          }
         />
-        <StatCard
-          label="ردود AI متاحة"
-          value={"24/7"}
-          color="purple"
-        />
+        <StatCard label="ردود AI" value="∞" sub="متاحة على مدار الساعة" />
       </div>
 
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6">
-        <h2 className="font-semibold mb-2">الميزات الفعالة في هذا العرض التجريبي</h2>
-        <ul className="text-sm text-zinc-600 dark:text-zinc-400 space-y-2 leading-7">
-          <li>✓ صندوق رسائل واتساب مشترك مع توزيع للموظفين</li>
-          <li>✓ ذكاء اصطناعي حقيقي (Gemini) يقترح ٣ ردود لكل محادثة</li>
-          <li>✓ استرجاع السلات المهجورة برسائل آلية مخصصة</li>
-          <li>✓ صلاحيات (مالك / موظف) وعرض اسم الموظف على الرسائل</li>
-          <li>✓ بيانات تجريبية لمتجر "متجر الأناقة" — لا يحتاج اتصال سلة حقيقي</li>
-        </ul>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <Section
+          title="ميزات تعمل في هذه الجلسة"
+          items={[
+            "صندوق رسائل واتساب مشترك مع توزيع تلقائي",
+            "ذكاء اصطناعي حقيقي (Gemini) يقترح ٣ ردود لكل محادثة",
+            "استرجاع السلات المهجورة برسائل آلية مخصصة",
+            "صلاحيات: مالك / موظف، مع اسم الموظف على الرسائل",
+            "بيانات تجريبية لمتجر وهمي — لا اتصال سلة حقيقي مطلوب",
+          ]}
+        />
+        <Section
+          title="الخطوات التالية"
+          items={[
+            "نشر العرض على Vercel + Railway للحصول على رابط عام",
+            "إضافة لوحة تحليلات (sentiment، أكثر الأسئلة، أداء الفريق)",
+            "تكامل تويليو/واتساب الفعلي بعد التجربة",
+            "تطبيق مع منصة سلة عبر partners.salla.dev",
+          ]}
+          muted
+        />
       </div>
     </div>
   );
@@ -81,33 +112,62 @@ export default function DashboardOverview() {
 function StatCard({
   label,
   value,
-  total,
-  color,
+  sub,
+  accent = false,
 }: {
   label: string;
-  value: string | number;
-  total?: number;
-  color: "emerald" | "amber" | "blue" | "purple";
+  value: string | number | null | undefined;
+  sub?: string;
+  accent?: boolean;
 }) {
-  const colors = {
-    emerald: "from-emerald-500 to-emerald-600",
-    amber: "from-amber-500 to-amber-600",
-    blue: "from-blue-500 to-blue-600",
-    purple: "from-purple-500 to-purple-600",
-  } as const;
+  const display = value === null || value === undefined ? "—" : value;
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-5">
-      <div className="text-xs text-zinc-500 mb-1">{label}</div>
-      <div className="flex items-baseline gap-2">
-        <span
-          className={`text-3xl font-bold bg-gradient-to-r ${colors[color]} bg-clip-text text-transparent`}
-        >
-          {value}
-        </span>
-        {total !== undefined && (
-          <span className="text-sm text-zinc-400">/ {total}</span>
-        )}
+    <div
+      className={`rounded-2xl p-5 border ${
+        accent
+          ? "bg-accent-soft border-accent/20"
+          : "bg-surface border-line"
+      }`}
+    >
+      <div className="text-[11px] uppercase tracking-wider text-ink-subtle mb-2">
+        {label}
       </div>
+      <div className={`text-3xl font-semibold ${accent ? "text-accent-ink" : "text-ink"}`}>
+        {display}
+      </div>
+      {sub && (
+        <div className={`text-xs mt-1 ${accent ? "text-accent-ink/70" : "text-ink-subtle"}`}>
+          {sub}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Section({
+  title,
+  items,
+  muted = false,
+}: {
+  title: string;
+  items: string[];
+  muted?: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-6 ${
+        muted ? "bg-surface-2/60 border-line" : "bg-surface border-line"
+      }`}
+    >
+      <h3 className="font-semibold mb-4 tracking-tight">{title}</h3>
+      <ul className="space-y-2.5 text-[14px] text-ink-muted leading-7">
+        {items.map((item, i) => (
+          <li key={i} className="flex items-start gap-2.5">
+            <span className="text-accent mt-1.5 shrink-0">›</span>
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
