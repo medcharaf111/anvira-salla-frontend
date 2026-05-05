@@ -127,7 +127,7 @@ export const api = {
       { method: "POST", body: JSON.stringify({ userId }) }
     ),
   suggestReplies: (id: string) =>
-    request<{ suggestions: string[] }>(
+    request<{ suggestions: string[]; source: "gemini" | "fallback" }>(
       `/conversations/${id}/suggest-replies`
     ),
   simulateInbound: (
@@ -143,6 +143,7 @@ export const api = {
     request<{
       ok: boolean;
       draft: string;
+      aiSource: "gemini" | "fallback";
       whatsapp: { mock: boolean; messageId: string };
       conversationId: string;
     }>(`/abandoned-carts/${id}/recover`, { method: "POST" }),
