@@ -1,36 +1,63 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Anvira — Frontend
 
-## Getting Started
+Next.js 16 app for **Anvira**, a unified operations platform for Salla merchants.
+Hosts the public marketing site, the merchant dashboard, and the Salla OAuth
+callback.
 
-First, run the development server:
+**Pairs with**: [`anvira-salla-backend`](https://github.com/medcharaf111/anvira-salla-backend) (Hono + Postgres on Railway).
+
+## Stack
+
+- Next.js 16 (App Router, Turbopack)
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Cairo font for Arabic, Geist for Latin
+- RTL by default (`dir="rtl"` on `<html>`)
+
+## Quick start
 
 ```bash
+npm install
+cp .env.example .env.local
+# fill in BACKEND_URL etc.
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Opens on http://localhost:3000.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Deployment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Vercel: connect this GitHub repo. No build config needed; Vercel auto-detects
+Next.js. Set the env vars from `.env.example` in the Vercel dashboard.
 
-## Learn More
+## Routes (current)
 
-To learn more about Next.js, take a look at the following resources:
+| Path | Purpose |
+|---|---|
+| `/` | Marketing landing page (Arabic) |
+| `/dashboard` | Merchant dashboard placeholder |
+| `/api/auth/salla/callback` | Salla OAuth callback handler |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Roadmap (per strategic plan)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**v1 (90 days):**
+- Salla OAuth + deep sync
+- WhatsApp shared inbox + Khaleeji AI smart replies
+- Abandoned cart recovery flow
+- Basic RBAC + per-user WhatsApp identity
 
-## Deploy on Vercel
+**v2/v3 (deferred):** Visual workflow builder, App Center, Team Chat, Tasks,
+sentiment analysis, performance scoring, mobile native app.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+[Merchant browser]
+       ↓
+[anvira-salla-frontend (Vercel)]   ← marketing + dashboard + Salla callback
+       ↓ REST/WebSocket
+[anvira-salla-backend (Railway)]   ← Salla OAuth + WhatsApp Cloud API + AI + DB
+       ↓
+[Postgres on Railway]
+```
