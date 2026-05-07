@@ -24,6 +24,17 @@ export default function CartsPage() {
     load().catch(console.error);
   }, [merchantId, load]);
 
+  const [simulating, setSimulating] = useState(false);
+  async function handleSimulate() {
+    setSimulating(true);
+    try {
+      await api.simulateAbandonedCart();
+      await load();
+    } finally {
+      setSimulating(false);
+    }
+  }
+
   async function handleRecover(id: string) {
     setRecoveringId(id);
     try {
@@ -37,12 +48,22 @@ export default function CartsPage() {
 
   return (
     <div className="px-10 py-12 max-w-5xl">
-      <header className="mb-8">
-        <p className="text-sm text-ink-subtle mb-1">الاستعادة الذكية</p>
-        <h1 className="text-3xl font-semibold tracking-tight">السلات المهجورة</h1>
-        <p className="text-ink-muted mt-2 text-[15px] max-w-2xl leading-relaxed">
-          عملاء أضافوا منتجات للسلة ولم يكملوا الدفع. اضغط "استرجاع" ليصيغ Anvira AI رسالة واتساب مخصصة باسم العميل ومنتجاته، ويرسلها مباشرة.
-        </p>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm text-ink-subtle mb-1">الاستعادة الذكية</p>
+          <h1 className="text-3xl font-semibold tracking-tight">السلات المهجورة</h1>
+          <p className="text-ink-muted mt-2 text-[15px] max-w-2xl leading-relaxed">
+            عملاء أضافوا منتجات للسلة ولم يكملوا الدفع. اضغط "استرجاع" ليصيغ Anvira AI رسالة واتساب مخصصة باسم العميل ومنتجاته، ويرسلها مباشرة.
+          </p>
+        </div>
+        <button
+          onClick={handleSimulate}
+          disabled={simulating}
+          className="text-xs px-3 py-1.5 rounded-lg bg-warn-soft text-warn hover:opacity-80 transition disabled:opacity-50 shrink-0"
+          title="إنشاء سلة مهجورة وهمية للعرض"
+        >
+          {simulating ? "..." : "+ محاكاة سلة"}
+        </button>
       </header>
 
       <div className="space-y-3">

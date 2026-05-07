@@ -313,6 +313,19 @@ export const api = {
       "/dev/whatsapp/simulate-inbound",
       { method: "POST", body: JSON.stringify({ body, ...opts }) }
     ),
+  simulateInboundConversation: () =>
+    request<{ ok: boolean; conversation: Conversation; message: Message }>(
+      "/dev/simulate/inbound-conversation",
+      { method: "POST" }
+    ),
+  simulateOrder: () =>
+    request<{ ok: boolean; order: SallaOrder }>("/dev/simulate/order", {
+      method: "POST",
+    }),
+  simulateAbandonedCart: () =>
+    request<{ ok: boolean; cart: AbandonedCart }>("/dev/simulate/abandoned-cart", {
+      method: "POST",
+    }),
   listCarts: () => request<{ carts: AbandonedCart[] }>("/abandoned-carts"),
   recoverCart: (id: string) =>
     request<{

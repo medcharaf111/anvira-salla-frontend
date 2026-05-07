@@ -109,6 +109,12 @@ export default function InboxPage() {
     await refreshList();
   }
 
+  async function handleSimulateNewConversation() {
+    const r = await api.simulateInboundConversation();
+    await refreshList();
+    setActiveId(r.conversation.id);
+  }
+
   return (
     <div className="flex h-full bg-canvas">
       <ConversationList
@@ -116,6 +122,7 @@ export default function InboxPage() {
         activeId={activeId}
         onSelect={setActiveId}
         users={users}
+        onSimulateNew={handleSimulateNewConversation}
       />
       {activeConv ? (
         <div className="flex-1 flex flex-col bg-canvas">
@@ -165,20 +172,42 @@ function ConversationList({
   activeId,
   onSelect,
   users,
+  onSimulateNew,
 }: {
   conversations: Conversation[];
   activeId: string | null;
   onSelect: (id: string) => void;
   users: User[];
+  onSimulateNew: () => Promise<void>;
 }) {
   return (
     <div className="w-80 border-l border-line bg-surface overflow-y-auto shrink-0">
-      <div className="px-5 py-4 border-b border-line">
-        <div className="font-semibold tracking-tight">المحادثات</div>
-        <div className="text-xs text-ink-subtle mt-0.5">
-          {conversations.length} محادثة
+      <div className="px-5 py-4 border-b border-line flex items-start justify-between gap-2">
+        <div>
+          <div className="font-semibold tracking-tight">المحادثات</div>
+          <div className="text-xs text-ink-subtle mt-0.5">
+            {conversations.length} محادثة
+          </div>
         </div>
+        <button
+          onClick={onSimulateNew}
+          className="text-[10px] px-2 py-1 rounded-md bg-warn-soft text-warn hover:opacity-80 transition shrink-0"
+          title="محاكاة محادثة جديدة من عميل وهمي"
+        >
+          + محاكاة
+        </button>
       </div>
+      {conversations.length === 0 && (
+        <div className="px-5 py-8 text-center">
+          <div className="text-sm text-ink-subtle mb-3">لا توجد محادثات بعد</div>
+          <button
+            onClick={onSimulateNew}
+            className="text-xs px-3 py-1.5 rounded-lg bg-accent text-white hover:bg-accent-hover"
+          >
+            + محاكاة أول محادثة
+          </button>
+        </div>
+      )}
       <ul>
         {conversations.map((c) => {
           const assignee = users.find((u) => u.id === c.assignedUserId);

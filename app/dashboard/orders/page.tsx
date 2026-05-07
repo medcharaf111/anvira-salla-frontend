@@ -15,20 +15,46 @@ const STATUS: Record<string, { label: string; cls: string }> = {
 export default function OrdersPage() {
   const { merchantId } = useAuth();
   const [orders, setOrders] = useState<SallaOrder[]>([]);
+  const [simulating, setSimulating] = useState(false);
+
+  async function load() {
+    const r = await api.listOrders();
+    setOrders(r.orders);
+  }
 
   useEffect(() => {
     if (!merchantId) return;
-    api.listOrders().then((r) => setOrders(r.orders)).catch(console.error);
+    load().catch(console.error);
   }, [merchantId]);
+
+  async function handleSimulate() {
+    setSimulating(true);
+    try {
+      await api.simulateOrder();
+      await load();
+    } finally {
+      setSimulating(false);
+    }
+  }
 
   return (
     <div className="px-10 py-12 max-w-6xl">
-      <header className="mb-8">
-        <p className="text-sm text-ink-subtle mb-1">طلبات سلة</p>
-        <h1 className="text-3xl font-semibold tracking-tight">الطلبات</h1>
-        <p className="text-ink-muted mt-2 text-[15px]">
-          مرآة لطلبات المتجر القادمة من سلة (Webhook في الإصدار الفعلي).
-        </p>
+      <header className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm text-ink-subtle mb-1">طلبات سلة</p>
+          <h1 className="text-3xl font-semibold tracking-tight">الطلبات</h1>
+          <p className="text-ink-muted mt-2 text-[15px]">
+            مرآة لطلبات المتجر القادمة من سلة (Webhook في الإصدار الفعلي).
+          </p>
+        </div>
+        <button
+          onClick={handleSimulate}
+          disabled={simulating}
+          className="text-xs px-3 py-1.5 rounded-lg bg-warn-soft text-warn hover:opacity-80 transition disabled:opacity-50 shrink-0"
+          title="إنشاء طلب وهمي للعرض"
+        >
+          {simulating ? "..." : "+ محاكاة طلب"}
+        </button>
       </header>
 
       <div className="bg-surface rounded-2xl border border-line overflow-hidden">
