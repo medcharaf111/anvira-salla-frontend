@@ -1,7 +1,14 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
-import { api, getStoredAuth, setAuthIds, type MerchantSummary, type User } from "./api";
+import {
+  api,
+  getStoredAuth,
+  setAuthIds,
+  setStoredMerchantId,
+  type MerchantSummary,
+  type User,
+} from "./api";
 
 interface AuthState {
   merchantId: string | null;
@@ -29,9 +36,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setMerchant(me.merchant ?? null);
     setMerchants(me.merchants ?? []);
     setUsers(me.users);
+    // Always sync localStorage merchantId so subsequent API calls hit the
+    // right merchant — even if no current user resolves yet.
+    setStoredMerchantId(me.merchantId);
     const stored = getStoredAuth();
     const initial =
-      me.users.find((u) => u.id === stored.userId) ??
+      me.users.find((u) => u.id === stored.userId && u.id /* same merchant context */) ??
       me.users.find((u) => u.role === "owner") ??
       me.users[0] ??
       null;
@@ -40,6 +50,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setAuthIds(me.merchantId, initial.id);
     } else {
       setCurrent(null);
+      setAuthIds(me.merchantId, null);
     }
   }, []);
 

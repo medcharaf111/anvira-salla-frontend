@@ -492,10 +492,19 @@ export const api = {
     request<{ ok: boolean }>("/notifications/read-all", { method: "POST" }),
 };
 
-export function setAuthIds(merchantId: string, userId: string) {
+export function setAuthIds(merchantId: string, userId: string | null) {
   if (typeof window === "undefined") return;
   localStorage.setItem("anvira:merchantId", merchantId);
-  localStorage.setItem("anvira:userId", userId);
+  if (userId) {
+    localStorage.setItem("anvira:userId", userId);
+  } else {
+    localStorage.removeItem("anvira:userId");
+  }
+}
+
+export function setStoredMerchantId(merchantId: string) {
+  if (typeof window === "undefined") return;
+  localStorage.setItem("anvira:merchantId", merchantId);
 }
 
 export function getStoredAuth(): { merchantId: string | null; userId: string | null } {
