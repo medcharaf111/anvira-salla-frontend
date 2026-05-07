@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ReactNode } from "react";
+import { NotificationsBell } from "@/components/notifications-bell";
+import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
 
 const navItems = [
@@ -14,8 +16,10 @@ const navItems = [
   { href: "/dashboard/tasks", label: "المهام", icon: TasksIcon, group: "ops" },
   { href: "/dashboard/team", label: "تشات الفريق", icon: TeamIcon, group: "ops" },
   { href: "/dashboard/insights", label: "تحليلات AI", icon: SparkleIcon, group: "ops" },
+  { href: "/dashboard/knowledge", label: "قاعدة المعرفة", icon: BookIcon, group: "ops" },
   { href: "/dashboard/workflows", label: "الأتمتات", icon: WorkflowIcon, group: "ops" },
   { href: "/dashboard/apps", label: "متجر التطبيقات", icon: AppsIcon, group: "ops" },
+  { href: "/dashboard/api-keys", label: "API Keys", icon: KeyIcon, group: "system" },
   { href: "/dashboard/activity", label: "سجل النشاط", icon: ActivityIcon, group: "system" },
   { href: "/dashboard/settings", label: "الإعدادات والفريق", icon: GearIcon, group: "system" },
 ];
@@ -122,7 +126,18 @@ function Shell({ children }: { children: ReactNode }) {
         </div>
       </aside>
 
-      <main className="flex-1 overflow-y-auto">{children}</main>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="h-14 border-b border-line bg-surface flex items-center justify-between px-6 shrink-0">
+          <div className="text-xs text-ink-subtle">
+            {/* Breadcrumb / page title placeholder — pages set their own header */}
+          </div>
+          <div className="flex items-center gap-1">
+            <NotificationsBell />
+          </div>
+        </header>
+        <main className="flex-1 overflow-y-auto">{children}</main>
+      </div>
+      <OnboardingWizard />
     </div>
   );
 }
@@ -271,6 +286,22 @@ function ActivityIcon({ active }: IconProps) {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
       <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function BookIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5V4.5z" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function KeyIcon({ active }: IconProps) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className={iconClass(active)}>
+      <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }

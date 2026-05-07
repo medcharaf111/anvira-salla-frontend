@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, type SallaOrder } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
@@ -68,10 +69,13 @@ export default function OrdersPage() {
               return (
                 <tr
                   key={o.id}
-                  className="border-t border-line/60 hover:bg-canvas/50 transition"
+                  className="border-t border-line/60 hover:bg-canvas/50 transition cursor-pointer"
+                  onClick={() => { window.location.href = `/dashboard/orders/${o.id}`; }}
                 >
                   <td className="px-5 py-3.5 font-medium font-mono text-[13px]">
-                    #{o.sallaOrderId}
+                    <Link href={`/dashboard/orders/${o.id}`} className="text-accent hover:underline">
+                      #{o.sallaOrderId}
+                    </Link>
                   </td>
                   <td className="px-5 py-3.5 text-ink-muted text-[13px]">
                     {o.customerPhone ?? "—"}

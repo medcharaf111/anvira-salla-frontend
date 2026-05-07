@@ -174,6 +174,73 @@ export interface AgentPerformance {
   aiAssisted: number;
 }
 
+export interface CustomWorkflow {
+  id: string;
+  merchantId: string;
+  name: string;
+  description: string | null;
+  nodes: Array<{
+    id: string;
+    type: "trigger" | "condition" | "action";
+    position: { x: number; y: number };
+    data: Record<string, unknown>;
+  }>;
+  edges: Array<{ id: string; source: string; target: string }>;
+  enabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface KnowledgeEntry {
+  id: string;
+  merchantId: string;
+  question: string;
+  answer: string;
+  tags: string[];
+  enabled: boolean;
+  createdAt: string;
+}
+
+export interface ApiKey {
+  id: string;
+  merchantId: string;
+  userId: string;
+  name: string;
+  keyPreview: string;
+  lastUsedAt: string | null;
+  callCount: number;
+  revokedAt: string | null;
+  createdAt: string;
+}
+
+export interface AppNotification {
+  id: string;
+  merchantId: string;
+  userId: string | null;
+  kind: string;
+  title: string;
+  body: string | null;
+  href: string | null;
+  readAt: string | null;
+  createdAt: string;
+}
+
+export interface OrderDetail {
+  order: SallaOrder;
+  tasks: Task[];
+  conversations: Conversation[];
+  timeline: Array<{
+    label: string;
+    at: string;
+    status: "done" | "active" | "pending";
+  }>;
+}
+
+export interface ActivityResponse {
+  entries: ActivityEntry[];
+  distinctActions: string[];
+}
+
 function authHeaders(): Record<string, string> {
   if (typeof window === "undefined") return {};
   const merchantId = localStorage.getItem("anvira:merchantId");
@@ -295,8 +362,23 @@ export const api = {
     ),
 
   // ---------- Activity ----------
-  listActivity: () =>
-    request<{ entries: ActivityEntry[] }>("/activity"),
+  listActivity: (params?: { actor?: string; action?: string; from?: string; to?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.actor) q.set("actor", params.actor);
+    if (params?.action) q.set("action", params.action);
+    if (params?.from) q.set("from", params.from);
+    if (params?.to) q.set("to", params.to);
+    const qs = q.toString();
+    return request<ActivityResponse>(`/activity${qs ? `?${qs}` : ""}`);
+  },
+  exportActivityUrl: (params?: { actor?: string; action?: string; from?: string; to?: string }) => {
+    const q = new URLSearchParams();
+    if (params?.actor) q.set("actor", params.actor);
+    if (params?.action) q.set("action", params.action);
+    if (params?.from) q.set("from", params.from);
+    if (params?.to) q.set("to", params.to);
+    return `${BACKEND_URL}/activity/export?${q.toString()}`;
+  },
 
   // ---------- Team chat ----------
   listChannels: () =>
@@ -341,6 +423,60 @@ export const api = {
       `/insights/conversations/${id}/summary`,
       { method: "POST" }
     ),
+
+  // ---------- Order detail ----------
+  getOrder: (id: string) => request<OrderDetail>(`/orders/${id}`),
+
+  // ---------- Custom workflows (visual builder) ----------
+  listCustomWorkflows: () =>
+    request<{ workflows: CustomWorkflow[] }>("/custom-workflows"),
+  getCustomWorkflow: (id: string) =>
+    request<{ workflow: CustomWorkflow }>(`/custom-workflows/${id}`),
+  createCustomWorkflow: (payload: { name: string; description?: string }) =>
+    request<{ ok: boolean; workflow: CustomWorkflow }>("/custom-workflows", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateCustomWorkflow: (id: string, payload: Partial<CustomWorkflow>) =>
+    request<{ ok: boolean; workflow: CustomWorkflow }>(`/custom-workflows/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteCustomWorkflow: (id: string) =>
+    request<{ ok: boolean }>(`/custom-workflows/${id}`, { method: "DELETE" }),
+
+  // ---------- Knowledge base ----------
+  listKnowledge: () => request<{ entries: KnowledgeEntry[] }>("/knowledge"),
+  createKnowledge: (payload: { question: string; answer: string; tags?: string[] }) =>
+    request<{ ok: boolean; entry: KnowledgeEntry }>("/knowledge", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+  updateKnowledge: (id: string, payload: Partial<KnowledgeEntry>) =>
+    request<{ ok: boolean; entry: KnowledgeEntry }>(`/knowledge/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    }),
+  deleteKnowledge: (id: string) =>
+    request<{ ok: boolean }>(`/knowledge/${id}`, { method: "DELETE" }),
+
+  // ---------- API keys ----------
+  listApiKeys: () => request<{ keys: ApiKey[] }>("/api-keys"),
+  createApiKey: (name: string) =>
+    request<{ ok: boolean; key: ApiKey; plaintext: string }>("/api-keys", {
+      method: "POST",
+      body: JSON.stringify({ name }),
+    }),
+  revokeApiKey: (id: string) =>
+    request<{ ok: boolean }>(`/api-keys/${id}`, { method: "DELETE" }),
+
+  // ---------- Notifications ----------
+  listNotifications: () =>
+    request<{ notifications: AppNotification[]; unreadCount: number }>("/notifications"),
+  markNotificationRead: (id: string) =>
+    request<{ ok: boolean }>(`/notifications/${id}/read`, { method: "POST" }),
+  markAllNotificationsRead: () =>
+    request<{ ok: boolean }>("/notifications/read-all", { method: "POST" }),
 };
 
 export function setAuthIds(merchantId: string, userId: string) {
