@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { AuthProvider, useAuth } from "@/lib/auth-context";
@@ -60,16 +60,12 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="flex-1 flex bg-canvas">
       <aside className="w-64 border-l border-line bg-surface flex flex-col shrink-0">
-        <div className="px-5 py-5 border-b border-line">
-          <Link href="/" className="flex items-center gap-2">
+        <div className="px-5 py-4 border-b border-line">
+          <Link href="/" className="flex items-center gap-2 mb-3">
             <Logo />
-            <div>
-              <div className="font-semibold text-base tracking-tight">Anvira</div>
-              <div className="text-[11px] text-ink-subtle leading-tight">
-                منصة التشغيل لتجار سلة
-              </div>
-            </div>
+            <div className="font-semibold text-base tracking-tight">Anvira</div>
           </Link>
+          <MerchantSwitcher />
         </div>
 
         <nav className="flex-1 py-2 px-2 overflow-y-auto">
@@ -154,6 +150,81 @@ function Logo() {
         strokeLinejoin="round"
       />
     </svg>
+  );
+}
+
+function MerchantSwitcher() {
+  const { merchant, merchants, switchMerchant, loading } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  if (!merchant) return null;
+
+  const activeMerchants = merchants.filter((m) => !m.uninstalled);
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        disabled={loading}
+        className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg bg-canvas border border-line hover:border-accent transition disabled:opacity-50"
+      >
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="w-6 h-6 rounded-md bg-accent-soft text-accent-ink flex items-center justify-center text-[11px] font-semibold shrink-0">
+            {merchant.name.slice(0, 1)}
+          </div>
+          <div className="min-w-0 text-right">
+            <div className="text-[13px] font-medium truncate">{merchant.name}</div>
+            <div className="text-[10px] text-ink-subtle truncate">
+              {merchant.isDemo ? "متجر تجريبي (demo)" : merchant.domain ?? merchant.sallaStoreId}
+            </div>
+          </div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="text-ink-subtle shrink-0">
+          <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      </button>
+
+      {open && (
+        <div className="absolute top-full inset-x-0 mt-1 bg-surface rounded-lg border border-line shadow-lg z-30 max-h-64 overflow-y-auto">
+          <div className="px-3 py-2 text-[10px] uppercase tracking-wider text-ink-subtle border-b border-line">
+            تبديل المتجر ({activeMerchants.length})
+          </div>
+          {activeMerchants.map((m) => (
+            <button
+              key={m.id}
+              onClick={async () => {
+                setOpen(false);
+                if (m.id !== merchant.id) await switchMerchant(m.id);
+              }}
+              className={`w-full text-right px-3 py-2 hover:bg-surface-2 transition flex items-start gap-2 ${
+                m.id === merchant.id ? "bg-accent-soft/30" : ""
+              }`}
+            >
+              <div className="w-6 h-6 rounded-md bg-surface-2 flex items-center justify-center text-[11px] font-semibold shrink-0 mt-0.5">
+                {m.name.slice(0, 1)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-medium truncate flex items-center gap-1.5">
+                  {m.name}
+                  {m.isDemo && (
+                    <span className="text-[9px] px-1 py-0.5 rounded bg-warn-soft text-warn">demo</span>
+                  )}
+                  {m.id === merchant.id && (
+                    <span className="text-[9px] text-accent">✓</span>
+                  )}
+                </div>
+                <div className="text-[10px] text-ink-subtle truncate">
+                  {m.domain ?? m.sallaStoreId}
+                </div>
+              </div>
+            </button>
+          ))}
+          <div className="px-3 py-2 border-t border-line text-[10px] text-ink-subtle">
+            متاجر إضافية تظهر تلقائياً عند التثبيت من سلة
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

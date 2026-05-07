@@ -74,8 +74,20 @@ export interface SallaOrder {
   updatedAt: string;
 }
 
+export interface MerchantSummary {
+  id: string;
+  sallaStoreId: string;
+  name: string;
+  domain: string | null;
+  isDemo: boolean;
+  uninstalled?: boolean;
+  installedAt?: string;
+}
+
 export interface DevMe {
   merchantId: string;
+  merchant?: MerchantSummary;
+  merchants?: MerchantSummary[];
   users: User[];
 }
 
@@ -271,7 +283,8 @@ async function request<T>(
 }
 
 export const api = {
-  bootstrap: () => request<DevMe>("/dev/me"),
+  bootstrap: (merchantId?: string) =>
+    request<DevMe>(`/dev/me${merchantId ? `?merchantId=${merchantId}` : ""}`),
   listConversations: () =>
     request<{ conversations: Conversation[] }>("/conversations"),
   getConversation: (id: string) =>
