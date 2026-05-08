@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { api, type AbandonedCart } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useRealtimeTable } from "@/lib/realtime";
 
 export default function CartsPage() {
   const { merchantId } = useAuth();
@@ -23,6 +24,16 @@ export default function CartsPage() {
     if (!merchantId) return;
     load().catch(console.error);
   }, [merchantId, load]);
+
+  // Live: any cart change for this merchant → reload list
+  useRealtimeTable<Record<string, unknown>>({
+    table: "abandoned_carts",
+    filter: merchantId ? `merchant_id=eq.${merchantId}` : undefined,
+    enabled: !!merchantId,
+    onChange: () => {
+      load().catch(console.error);
+    },
+  });
 
   const [simulating, setSimulating] = useState(false);
   async function handleSimulate() {

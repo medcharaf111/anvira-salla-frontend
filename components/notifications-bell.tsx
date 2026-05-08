@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api, type AppNotification } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useRealtimeTable } from "@/lib/realtime";
 
 const KIND_EMOJI: Record<string, string> = {
   "task.assigned": "📋",
@@ -29,10 +30,22 @@ export function NotificationsBell() {
   useEffect(() => {
     if (!merchantId) return;
     load().catch(console.error);
-    // Light polling to mimic realtime — every 60s
+    // Polling fallback every 60s — Realtime hook below handles instant updates
+    // when Supabase Realtime is configured + replication is enabled.
     const t = setInterval(() => void load().catch(console.error), 60000);
     return () => clearInterval(t);
   }, [merchantId, load]);
+
+  // Live: instant updates on new notifications for this merchant
+  useRealtimeTable<Record<string, unknown>>({
+    table: "notifications",
+    event: "INSERT",
+    filter: merchantId ? `merchant_id=eq.${merchantId}` : undefined,
+    enabled: !!merchantId,
+    onChange: () => {
+      load().catch(console.error);
+    },
+  });
 
   // Click outside closes drawer
   useEffect(() => {

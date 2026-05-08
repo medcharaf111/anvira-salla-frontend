@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { api, type Conversation, type Message, type User } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useRealtimeTable } from "@/lib/realtime";
 
 export default function InboxPage() {
   const { merchantId, users, currentUser } = useAuth();
@@ -43,6 +44,28 @@ export default function InboxPage() {
   useEffect(() => {
     if (activeId) loadThread(activeId).catch(console.error);
   }, [activeId, loadThread]);
+
+  // Live: refresh conversation list when any conversation changes for this merchant
+  useRealtimeTable<Record<string, unknown>>({
+    table: "conversations",
+    filter: merchantId ? `merchant_id=eq.${merchantId}` : undefined,
+    enabled: !!merchantId,
+    onChange: () => {
+      refreshList().catch(console.error);
+    },
+  });
+
+  // Live: when a new message arrives in the currently-open thread, append it
+  useRealtimeTable<Record<string, unknown>>({
+    table: "messages",
+    event: "INSERT",
+    filter: activeId ? `conversation_id=eq.${activeId}` : undefined,
+    enabled: !!activeId,
+    onChange: () => {
+      if (activeId) loadThread(activeId).catch(console.error);
+      refreshList().catch(console.error);
+    },
+  });
 
   const activeConv = useMemo(
     () => conversations.find((c) => c.id === activeId) ?? null,

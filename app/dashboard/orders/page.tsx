@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { api, type SallaOrder } from "@/lib/api";
 import { useAuth } from "@/lib/auth-context";
+import { useRealtimeTable } from "@/lib/realtime";
 
 const STATUS: Record<string, { label: string; cls: string }> = {
   shipped: { label: "تم الشحن", cls: "bg-info-soft text-info" },
@@ -26,6 +27,16 @@ export default function OrdersPage() {
     if (!merchantId) return;
     load().catch(console.error);
   }, [merchantId]);
+
+  // Live: order changes for this merchant → reload table
+  useRealtimeTable<Record<string, unknown>>({
+    table: "salla_orders",
+    filter: merchantId ? `merchant_id=eq.${merchantId}` : undefined,
+    enabled: !!merchantId,
+    onChange: () => {
+      load().catch(console.error);
+    },
+  });
 
   async function handleSimulate() {
     setSimulating(true);
